@@ -63,11 +63,30 @@
 
     <!-- Original Feature 3: Result-count Placeholder -->
     <section class="results-meta-section" aria-label="Search status">
-      <p id="result-count" class="result-count">Results will appear here</p>
+      <p id="result-count" class="result-count" aria-live="polite">Results will appear here</p>
     </section>
 
+    <!-- Part 3 Feature: Loading State Indicator -->
+    <div id="loading" class="loading-container" hidden aria-live="polite">
+      <div class="spinner"></div>
+      <p class="loading-text">Searching visual ideas…</p>
+    </div>
+
+    <!-- Part 3 Feature: Error State Container -->
+    <div id="error-state" class="error-state-container" hidden role="alert" aria-live="assertive">
+      <div class="error-icon" aria-hidden="true">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <p class="error-title">Something went wrong.</p>
+      <p class="error-message">Please check your connection and try again.</p>
+    </div>
+
     <!-- Original Feature 1: Empty-State Message -->
-    <div class="empty-state-container">
+    <div id="empty-state-wrapper" class="empty-state-container">
       <div class="empty-state-graphic" aria-hidden="true">
         <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
