@@ -1,10 +1,49 @@
-// FrameFind — Part 2: Fetch & Render Image Search
+// FrameFind — Part 3: Polish, Error States & Deploy
 
 const form = document.getElementById("search-form");
 const input = document.getElementById("search-input");
 const results = document.getElementById("results");
 const emptyState = document.getElementById("empty-state");
 const resultCount = document.getElementById("result-count");
+const loadingIndicator = document.getElementById("loading");
+const errorState = document.getElementById("error-state");
+const emptyContainer = document.getElementById("empty-state-wrapper") || emptyState.closest(".empty-state-container");
+
+function hideAllStates() {
+  if (loadingIndicator) loadingIndicator.hidden = true;
+  if (errorState) errorState.hidden = true;
+  if (emptyContainer) emptyContainer.hidden = true;
+  emptyState.hidden = true;
+}
+
+function showLoading() {
+  results.innerHTML = "";
+  hideAllStates();
+  if (loadingIndicator) loadingIndicator.hidden = false;
+  resultCount.textContent = "Searching…";
+}
+
+function showResults(items, query) {
+  hideAllStates();
+  resultCount.textContent = `Showing ${items.length} results for "${query}"`;
+  render(items);
+}
+
+function showEmpty(query) {
+  results.innerHTML = "";
+  hideAllStates();
+  resultCount.textContent = `No results for "${query}". Try another search.`;
+  emptyState.hidden = false;
+  emptyState.textContent = `Nothing matched "${query}". Try another topic.`;
+  if (emptyContainer) emptyContainer.hidden = false;
+}
+
+function showError() {
+  results.innerHTML = "";
+  hideAllStates();
+  resultCount.textContent = "Something went wrong. Please try again.";
+  if (errorState) errorState.hidden = false;
+}
 
 function render(items) {
   results.innerHTML = "";
@@ -35,6 +74,9 @@ form.addEventListener("submit", async (event) => {
 
   if (!query) return;
 
+  // 1. Immediate Loading State before fetch
+  showLoading();
+
   const url =
     "https://commons.wikimedia.org/w/api.php?action=query" +
     "&generator=search&gsrsearch=" + encodeURIComponent(query) +
@@ -42,32 +84,26 @@ form.addEventListener("submit", async (event) => {
     "&prop=imageinfo&iiprop=url&iiurlwidth=300" +
     "&format=json&origin=*";
 
-  const response = await fetch(url);
+  try {
+    const response = await fetch(url);
 
-  if (!response.ok) {
-    throw new Error(response.status);
-  }
-
-  const data = await response.json();
-
-  const items = data.query ? Object.values(data.query.pages) : [];
-
-  if (items.length > 0) {
-    emptyState.hidden = true;
-    const emptyContainer = emptyState.closest(".empty-state-container");
-    if (emptyContainer) {
-      emptyContainer.hidden = true;
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
     }
-    resultCount.textContent = `Showing ${items.length} results for "${query}"`;
-    render(items);
-  } else {
-    results.innerHTML = "";
-    emptyState.hidden = false;
-    emptyState.textContent = `No results found for "${query}". Try another search.`;
-    const emptyContainer = emptyState.closest(".empty-state-container");
-    if (emptyContainer) {
-      emptyContainer.hidden = false;
+
+    const data = await response.json();
+
+    const items = data.query ? Object.values(data.query.pages) : [];
+
+    if (items.length > 0) {
+      // 2. Results State
+      showResults(items, query);
+    } else {
+      // 3. Empty-Result State
+      showEmpty(query);
     }
-    resultCount.textContent = `Showing 0 results for "${query}"`;
+  } catch (error) {
+    // 4. Resilient Error State
+    showError();
   }
 });
